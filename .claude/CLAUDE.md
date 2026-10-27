@@ -33,5 +33,5 @@ uv run --no-project --with markdown --with openpyxl --with pypdf python D:\OneDr
   - 經名來自 index.py 以正則抓卷內「（N）…品…經第」標題；抓不到或截斷者在 `SUT.update(...)` 手動補（71、72、143、162–164）。逐經提要缺者在 `syn.update(...)` 補寫。
   - 「道品／一切處／無學」標記：`KW` 正則在各卷文中命中後歸屬到前一個經題，再加上 `MANUAL`。
   - 設定檔：分組樣式 `中阿含經卷第X.*`、`"內嵌格式": ["md"]`（只內嵌 md，HTML 約 6 MB；內嵌 docx 時約 43 MB）、`"本機開啟連結": false`。
-- **流程圖**：`FC_CSS`＋`chain()`／`lanes()`／`MAIN_MAP` 在 md 內直接寫 HTML/CSS（不可用 Mermaid／CDN）。HTML 區塊內不可有空行（否則被 Markdown 拆開），前後要空行；顏色只用頁面 CSS 變數（`--accent`、`--line`…）以支援深色主題；節點文字避免「項目：內容」形式，以免被「📌 文件重點」擷取。
+- **流程圖**：一律為 **UML 活動圖**記號（「act 名稱」外框、● 起點、◉ 終點、圓角框動作、實線箭頭、fork／join 粗槓、◇ 決策＋`[guard]`、泳道 partition、連接點 A/B…）。`FC_CSS`＋`chain()`（自動加起訖點）／`decision()`／`partitions()`／`fork_lanes()`／`MAIN_MAP` 在 md 內直接寫 HTML/CSS（不可用 Mermaid／CDN）。HTML 區塊內不可有空行（否則被 Markdown 拆開），前後要空行；顏色只用頁面 CSS 變數（`--accent`、`--line`…）以支援深色主題；節點文字避免「項目：內容」形式，以免被「📌 文件重點」擷取。
 - **產生器** `generate_doc_bundle.py` 為多個資料夾共用，改動須維持預設行為不變，並同步更新規格書的設定表。

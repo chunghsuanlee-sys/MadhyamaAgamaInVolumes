@@ -102,56 +102,115 @@ def sref(n):
 def w(name, text):
     with open(os.path.join(CORE, name), 'w', encoding='utf-8') as o: o.write(text.strip() + '\n')
 
-# ── 流程圖（HTML/CSS，沿用頁面色彩變數，深淺色主題皆適用；不得有空行以免被 Markdown 拆開） ──
+# ── 流程圖：UML 活動圖（HTML/CSS，沿用頁面色彩變數，深淺色主題皆適用；不得有空行以免被 Markdown 拆開） ──
+# 記號：外框左上「act 名稱」、● 起點、◉ 終點、圓角框＝動作、實線箭頭＝控制流、
+#       粗槓＝fork／join、◇＝決策／合併（[guard]）、泳道＝partition、Ⓐ＝連接點（泳道間續接）
 FC_CSS = ('\n\n<style>'
- '.fc{margin:1.2em 0;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--subtle)}'
- '.fc-title{color:var(--accent);font-size:1.05rem;margin-bottom:10px}'
- '.fc-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px}'
- '.fc-n{display:inline-block;border:1.5px solid var(--accent-line);background:var(--card);border-radius:8px;padding:5px 10px;line-height:1.5;text-align:center}'
+ '.fc{margin:1.2em 0;padding:14px 16px;border:1.5px solid var(--muted);border-radius:14px;background:var(--subtle)}'
+ '.fc-title{display:inline-block;margin:-14px 0 12px -16px;padding:3px 22px 3px 12px;background:var(--card);color:var(--accent);'
+ 'border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);border-top-left-radius:13px;font-size:.95rem;'
+ 'clip-path:polygon(0 0,100% 0,100% 55%,calc(100% - 12px) 100%,0 100%)}'
+ '.fc-title .kw{color:var(--muted);margin-right:.4em}'
+ '.fc-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 0}'
+ '.fc-s{display:inline-flex;align-items:center}'
+ '.fc-n{display:inline-block;flex:none;border:1.5px solid var(--muted);background:var(--card);border-radius:14px;padding:5px 12px;line-height:1.5;text-align:center}'
  '.fc-n small{display:block;color:var(--muted);font-size:.82em;line-height:1.45}'
  '.fc-n.hl{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}'
  '.fc-n.end{background:var(--point);border-color:var(--point-line)}'
- '.fc-a{color:var(--muted);padding:0 2px}'
- '.fc-s{display:inline-flex;align-items:center;gap:4px}'
- '.fc-row .fc-n{flex:none}'
- '.fc-lane{display:grid;grid-template-columns:7.5em 1fr;gap:8px;align-items:center;padding:6px 0;border-top:1px dashed var(--line)}'
- '.fc-lane:first-of-type{border-top:0}'
- '.fc-lab{color:var(--accent);text-align:right;font-size:.92em}'
- '.fc-lab small{display:block;color:var(--muted)}'
- '.fc-v{display:flex;flex-direction:column;align-items:center;gap:4px}'
+ '.fc-a{display:inline-block;flex:none;width:24px;height:0;margin:0 3px;border-top:1.5px solid var(--muted);position:relative}'
+ '.fc-a::after{content:"";position:absolute;right:-2px;top:-5.5px;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent var(--muted)}'
+ '.fc-g{color:var(--muted);font-size:.82em;white-space:nowrap}'
+ '.fc-down{width:0;height:24px;margin:2px auto 6px;border-left:1.5px solid var(--muted);position:relative}'
+ '.fc-down::after{content:"";position:absolute;left:-5.75px;bottom:-6px;border-style:solid;border-width:8px 5px 0 5px;border-color:var(--muted) transparent transparent transparent}'
+ '.u-init{display:inline-block;flex:none;width:16px;height:16px;border-radius:50%;background:var(--text)}'
+ '.u-final{display:inline-block;flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--text);background:var(--text);box-shadow:inset 0 0 0 3px var(--subtle)}'
+ '.u-con{display:inline-flex;flex:none;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--text);background:var(--card);font-size:.8em}'
+ '.u-dec{display:inline-block;flex:none;width:16px;height:16px;margin:0 5px;transform:rotate(45deg);border:1.5px solid var(--text);background:var(--card)}'
+ '.u-br{display:inline-flex;flex-direction:column;gap:6px;padding:4px 8px;border-left:1.5px solid var(--muted);border-right:1.5px solid var(--muted)}'
+ '.u-br>.fc-row{flex-wrap:nowrap}'
+ '.u-bar{height:6px;width:70%;margin:0 auto;border-radius:2px;background:var(--text)}'
+ '.u-vbar{width:6px;flex:none;align-self:stretch;border-radius:2px;background:var(--text)}'
+ '.u-parts{flex:1;min-width:0}'
+ '.u-part{display:grid;grid-template-columns:6.5em 1fr;border:1.5px solid var(--muted);border-top-width:0;background:var(--card)}'
+ '.u-part:first-child{border-top-width:1.5px}'
+ '.u-plab{display:flex;flex-direction:column;justify-content:center;padding:6px;border-right:1.5px solid var(--muted);color:var(--accent);text-align:center;font-size:.92em}'
+ '.u-plab small{color:var(--muted)}'
+ '.u-pbody{padding:8px 10px;background:var(--subtle)}'
+ '.u-fork{display:flex;align-items:stretch;gap:0}'
+ '.u-narrow .u-part{grid-template-columns:3.2em 1fr}'
+ '.u-fj{border-left:6px solid var(--text);border-right:6px solid var(--text)}'
+ '.u-after{width:max-content;max-width:100%;margin-left:auto}'
+ '.u-mid{display:flex;align-items:center}'
+ '.fc-v{display:flex;flex-direction:column;align-items:center}'
  '.fc-v .fc-n{max-width:30em}'
  '.fc-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}'
- '.fc-down{color:var(--muted);text-align:center;line-height:1.2}'
- '@media(max-width:640px){.fc-lane{grid-template-columns:1fr}.fc-lab{text-align:left}.fc-cols{grid-template-columns:1fr}}'
+ '@media(max-width:640px){.u-part{grid-template-columns:1fr}.u-plab{border-right:0;border-bottom:1.5px solid var(--muted)}'
+ '.fc-cols{grid-template-columns:1fr}.u-fork{flex-direction:column}.u-vbar{width:70%;height:6px;align-self:center}'
+ '.u-mid{justify-content:center}.u-br>.fc-row{flex-wrap:wrap}}'
  '</style>\n')
 
+INIT = '<span class="u-init" title="起點"></span>'
+FINAL = '<span class="u-final" title="終點"></span>'
+DEC = '<span class="u-dec" title="決策／合併"></span>'
+ARROW = '<span class="fc-a"></span>'
+DOWN = '<div class="fc-down"></div>'
+BAR = '<div class="u-bar" title="fork／join"></div>'
+VBAR = '<span class="u-vbar" title="fork／join"></span>'
+def con(x): return f'<span class="u-con" title="連接點 {x}">{x}</span>'
+
 def fnode(s):
+    """tuple＝(名稱, 小字, 樣式)；以 < 開頭的字串為原始 UML 記號；其餘字串為動作。"""
+    if isinstance(s, str) and s.startswith('<'):
+        return s
     t, sub, cls = (s + ('', '', ''))[:3] if isinstance(s, tuple) else (s, '', '')
     return f'<span class="fc-n {cls}">{t}' + (f'<small>{sub}</small>' if sub else '') + '</span>'
 def frow(steps):
     # 箭頭與後一節點綁在一起，換行時箭頭不會落單在行尾
     return ('<div class="fc-row">' + fnode(steps[0]) +
-            ''.join(f'<span class="fc-s"><span class="fc-a">→</span>{fnode(s)}</span>' for s in steps[1:]) + '</div>')
+            ''.join(f'<span class="fc-s">{ARROW}{fnode(s)}</span>' for s in steps[1:]) + '</div>')
+def frame(title, body):
+    return f'\n<div class="fc"><div class="fc-title"><span class="kw">act</span>{title}</div>{body}</div>\n'
 def chain(title, steps):
-    return f'\n<div class="fc"><div class="fc-title">{title}</div>{frow(steps)}</div>\n'
-def lanes(title, rows):
-    body = ''.join(f'<div class="fc-lane"><div class="fc-lab">{lab}' + (f'<small>{sub}</small>' if sub else '') +
-                   f'</div>{frow(steps)}</div>' for lab, sub, steps in rows)
-    return f'\n<div class="fc"><div class="fc-title">{title}</div>{body}</div>\n'
-DOWN = '<div class="fc-down">↓</div>'
+    return frame(title, frow([INIT, *steps, FINAL]))
+def decision(branches):
+    """決策節點 → 各分支（[guard] → 動作…）→ 合併節點。"""
+    rows = ''.join(f'<div class="fc-row"><span class="fc-g">[{g}]</span>{ARROW}' +
+                   frow(steps)[len('<div class="fc-row">'):-len('</div>')] + f'{ARROW}</div>' for g, steps in branches)
+    return f'{DEC}<span class="u-br">{rows}</span>{DEC}'
+def partitions(title, rows):
+    """泳道依序相連：首道由 ● 起，各道末以連接點 Ⓐ… 接到下一道，末道至 ◉。"""
+    marks = 'ABCDEF'
+    body = ''
+    for i, (lab, sub, steps) in enumerate(rows):
+        head = [INIT] if i == 0 else [con(marks[i - 1])]
+        tail = [FINAL] if i == len(rows) - 1 else [con(marks[i])]
+        body += (f'<div class="u-part"><div class="u-plab">{lab}' + (f'<small>{sub}</small>' if sub else '') +
+                 f'</div><div class="u-pbody">{frow(head + steps + tail)}</div></div>')
+    return frame(title, f'<div class="u-parts">{body}</div>')
+def fork_lanes(title, rows, after):
+    """● → fork → 各泳道並行 → join → 後續動作 → ◉。"""
+    # fork／join 粗槓畫成各泳道流程格的左右粗框，上下相連成一條；join 之後的動作接在右下方
+    lanes_html = ''.join(
+        f'<div class="u-part"><div class="u-plab">{lab}</div><div class="u-pbody u-fj">'
+        f'<div class="fc-row">{ARROW}' + frow(steps)[len('<div class="fc-row">'):-len('</div>')] + f'{ARROW}</div></div></div>'
+        for lab, steps in rows)
+    tail = DOWN.join(fnode(s) for s in after)
+    return frame(title, f'<div class="u-fork u-narrow"><span class="u-mid">{INIT}{ARROW}</span>'
+                        f'<div class="u-parts">{lanes_html}</div></div>'
+                        f'<div class="fc-v u-after">{DOWN}{tail}{DOWN}{FINAL}</div>')
 
-SONG_LANES = lanes('五誦 → 十八品（依卷次）', [
-    (s, f'卷{a}–{b}', [(gname(p).split(' ')[1], f'經{p[2]}–{p[3]}', 'hl' if p[0] == 18 else '')
+SONG_LANES = partitions('五誦 → 十八品（依卷次）', [
+    (s, f'卷{a}–{b}', [(gname(p).split(' ')[1] + ('（續）' if p[4] < a else ''), f'經{p[2]}–{p[3]}', 'hl' if p[0] == 18 else '')
                       for p in PIN if not (p[5] < a or p[4] > b)]) for s, a, b in SONG])
-MAIN_MAP = ('\n<div class="fc"><div class="fc-title">修道總圖（例經三大法門 × 戒定慧）</div><div class="fc-v">'
- + fnode(('戒（基礎）', '正語・正業・正命（八正道之戒支）、五戒、八關齋、十善業')) + DOWN
- + '<div class="fc-cols"><div class="fc-v">' + fnode(('定（止）', '四如意足、四禪、四無量<br>十一切處（地水火風・青黃赤白・空識）')) + '</div>'
- + '<div class="fc-v">' + fnode(('慧（觀）', '四念處、七覺支之擇法<br>五根五力之慧、正見')) + '</div></div>'
- + '<div class="fc-cols">' + DOWN + DOWN + '</div>'
+MAIN_MAP = frame('修道總圖（例經三大法門 × 戒定慧）', '<div class="fc-v">' + INIT + DOWN
+ + fnode(('戒（基礎）', '正語・正業・正命（八正道之戒支）、五戒、八關齋、十善業')) + DOWN + BAR
+ + '<div class="fc-cols"><div class="fc-v">' + DOWN + fnode(('定（止）', '四如意足、四禪、四無量<br>十一切處（地水火風・青黃赤白・空識）')) + DOWN + '</div>'
+ + '<div class="fc-v">' + DOWN + fnode(('慧（觀）', '四念處、七覺支之擇法<br>五根五力之慧、正見')) + DOWN + '</div></div>'
+ + BAR + DOWN
  + fnode(('八正道（中道）', '三十七道品之總匯，戒定慧統攝於八支', 'hl')) + DOWN
  + fnode(('十無學法（阿羅漢）', '八正道 ＋ 正解脫 ＋ 正智', 'end')) + DOWN
- + fnode(('究竟涅槃', '斷生老病死與十二因緣', 'end'))
- + '</div></div>\n')
+ + fnode(('究竟涅槃', '斷生老病死與十二因緣', 'end')) + DOWN + FINAL
+ + '</div>')
 
 # ═════════ 根目錄 00_總覽.md ═════════
 over = f"""# 中阿含經 十八品彙整：以三十七道品・十一切處・十無學法為核心
@@ -265,17 +324,17 @@ w('02_三十七道品_理論與修法.md', f"""
 
 ## 七組道品如何串成一條路
 
-""" + FC_CSS + lanes('五種能力貫穿七組道品，匯歸八正道', [
-    ('信', '', [('信根', '五根'), ('信力', '五力'), ('正見・正思惟之基礎', '食經：生信 → 正思惟', 'hl')]),
-    ('精進', '', [('四正勤', '起點'), ('精進根', '五根'), ('精進力', '五力'), ('精進覺支', '七覺支'), ('正方便', '八正道', 'hl')]),
-    ('念', '', [('四念處', '起點・一乘道'), ('念根', '五根'), ('念力', '五力'), ('念覺支', '七覺支'), ('正念', '八正道', 'hl')]),
-    ('定', '', [('四如意足', '起點'), ('定根', '五根'), ('定力', '五力'), ('輕安・定・捨覺支', '七覺支'), ('正定', '八正道', 'hl')]),
-    ('慧', '', [('慧根', '五根'), ('慧力', '五力'), ('擇法覺支', '七覺支'), ('正見・正志', '八正道', 'hl')]),
-    ('戒', '', [('正語・正業・正命', '八正道之戒支', 'hl')]),
-]) + lanes('五根到五力、七覺支的調和', [
-    ('五根→五力', '能生 → 不可壞', [('信', ''), ('精進', ''), ('念', '守門人', 'hl'), ('定', ''), ('慧', '')]),
-    ('心沉時', '提起', [('擇法覺支',), ('精進覺支',), ('喜覺支',)]),
-    ('心浮時', '收攝', [('輕安覺支',), ('定覺支',), ('捨覺支', '平等', 'end')]),
+""" + FC_CSS + fork_lanes('五種能力貫穿七組道品，匯歸八正道', [
+    ('信', [('信根', '五根'), ('信力', '五力'), ('正見・正思惟之基礎', '食經：生信 → 正思惟', 'hl')]),
+    ('精進', [('四正勤', '起點'), ('精進根', '五根'), ('精進力', '五力'), ('精進覺支', '七覺支'), ('正方便', '八正道', 'hl')]),
+    ('念', [('四念處', '起點・一乘道'), ('念根', '五根'), ('念力', '五力'), ('念覺支', '七覺支'), ('正念', '八正道', 'hl')]),
+    ('定', [('四如意足', '起點'), ('定根', '五根'), ('定力', '五力'), ('輕安・定・捨覺支', '七覺支'), ('正定', '八正道', 'hl')]),
+    ('慧', [('慧根', '五根'), ('慧力', '五力'), ('擇法覺支', '七覺支'), ('正見・正志', '八正道', 'hl')]),
+    ('戒', [('正語・正業・正命', '八正道之戒支', 'hl')]),
+], [('八正道（中道）', '七組道品之總匯', 'end')]) + chain('五根五力的調和與七覺支', [
+    ('修五根→五力', '信・精進・念・定・慧<br>能生 → 不可壞'), ('以念觀察心', '念為守門人', 'hl'),
+    decision([('心沉', [('擇法覺支',), ('精進覺支',), ('喜覺支',)]), ('心浮', [('輕安覺支',), ('定覺支',)])]),
+    ('捨覺支', '平等', 'end'),
 ]) + """
 - 四念處是起點（「一乘道」）；八正道統攝戒（正語、正業、正命）、定（正方便、正念、正定）、慧（正見、正志），是其他各組的總匯。
 
@@ -294,10 +353,9 @@ w('03_十一切處_禪定所緣.md', f"""
 | 四大 | 地、水、火、風 | 六界觀（分別六界經）、象跡喻經之四大非我、想經之「不著地想」 |
 | 四色 | 青、黃、赤、白 | 長壽王本起經中阿那律修「光明與見色」之定 |
 | 無色 | 空、識 | 六界之空界、識界；四無色定之空無邊處、識無邊處 |
-{FC_CSS}{lanes('十一切處：同一對象，止觀兩用', [
-    ('四大', '', [('地',), ('水',), ('火',), ('風',), ('止', '遍滿之禪相', 'hl'), ('觀', '六界非我', 'end')]),
-    ('四色', '', [('青',), ('黃',), ('赤',), ('白',), ('止', '光明・見色之定', 'hl'), ('觀', '無常・非我', 'end')]),
-    ('無色', '', [('空',), ('識',), ('止', '空無邊處・識無邊處', 'hl'), ('觀', '思所作・滅法', 'end')]),
+{FC_CSS}{chain('十一切處：選一所緣，止觀兩用', [
+    decision([('四大', [('地・水・火・風', '六界之四大')]), ('四色', [('青・黃・赤・白', '光明・見色')]), ('無色', [('空・識', '空無邊處・識無邊處')])]),
+    ('止', '遍滿一切處・入禪', 'hl'), ('觀', '六界非我・無常・滅法', 'end'),
 ])}
 ## 二、中阿含中的位置
 
@@ -341,7 +399,7 @@ w('04_十無學法_解脫圓滿.md', f"""
 | :--- | :--- | :--- |
 | 學人（初果至阿羅漢向） | 八支聖道 | 道正在修習中 |
 | 無學（阿羅漢） | 八支＋正解脫＋正智＝十支 | 道已完成，得解脫並知自己已解脫 |
-{FC_CSS}{chain('聖道經（經 189）：正見為導首，八支生起正解脫與正智', [('正見', '導首', 'hl'), '正志', '正語', '正業', '正命', '正方便', '正念', ('正定', '聖正定'), ('正解脫', '無學增上', 'end'), ('正智', '無學增上', 'end')])}{lanes('學人到無學', [
+{FC_CSS}{chain('聖道經（經 189）：正見為導首，八支生起正解脫與正智', [('正見', '導首', 'hl'), '正志', '正語', '正業', '正命', '正方便', '正念', ('正定', '聖正定'), ('正解脫', '無學增上', 'end'), ('正智', '無學增上', 'end')])}{partitions('學人到無學', [
     ('學人', '有學', [('八支聖道', '道正在修習', 'hl'), ('調御', '如調良馬・漸次')]),
     ('無學', '阿羅漢', [('八支圓滿',), ('正解脫', '心解脫・慧解脫', 'end'), ('正智', '所作已辦・不受後有', 'end')]),
 ])}
